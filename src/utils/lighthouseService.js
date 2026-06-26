@@ -25,12 +25,7 @@ export async function uploadVaultToFilecoin(vaultJsonStr, apiKey) {
   }
 }
 
-/**
- * Fetches the encrypted vault payload from Filecoin/IPFS gateways with automatic failover.
- * @param {string} cid 
- * @returns {Promise<string>} - The stringified JSON vault payload
- */
-export async function fetchVaultFromGateway(cid) {
+export async function fetchVaultFromGateway(cid, customGateway = '') {
   if (!cid) {
     throw new Error('CID is required for retrieval.');
   }
@@ -39,11 +34,24 @@ export async function fetchVaultFromGateway(cid) {
   const cleanCid = cid.trim();
 
   // List of gateways for robust retrieval
-  const gateways = [
-    `https://gateway.lighthouse.storage/ipfs/${cleanCid}`,
-    `https://cloudflare-ipfs.com/ipfs/${cleanCid}`,
-    `https://ipfs.io/ipfs/${cleanCid}`
-  ];
+  const gateways = [];
+
+  // Add custom dedicated gateway if provided
+  if (customGateway) {
+    let cleanGateway = customGateway.trim().replace(/\/$/, '');
+    if (!cleanGateway.startsWith('http')) {
+      cleanGateway = 'https://' + cleanGateway;
+    }
+    gateways.push(`${cleanGateway}/ipfs/${cleanCid}`);
+  }
+
+  // Add open, CORS-friendly public gateways for failover
+  gateways.push(
+    `https://dweb.link/ipfs/${cleanCid}`,
+    `https://w3s.link/ipfs/${cleanCid}`,
+    `https://ipfs.io/ipfs/${cleanCid}`,
+    `https://cloudflare-ipfs.com/ipfs/${cleanCid}`
+  );
 
   let lastError = null;
 
@@ -59,6 +67,11 @@ export async function fetchVaultFromGateway(cid) {
           console.log(`Successfully retrieved vault from: ${gatewayUrl}`);
           return text;
         }
+      } else if (response.status === 402) {
+        console.warn(`Gateway ${gatewayUrl} returned 402 (Payment Required)`);
+        lastError = new Error('Gateway returned 402 (Payment Required). Using dedicated gateway is recommended.');
+      } else {
+        lastError = new Error(`HTTP error ${response.status}`);
       }
     } catch (err) {
       console.warn(`Gateway retrieve failed: ${gatewayUrl}`, err);
