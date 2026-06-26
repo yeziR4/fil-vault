@@ -8,15 +8,12 @@ function App() {
   const [activeTab, setActiveTab] = useState('create'); // 'create', 'retrieve', 'settings'
 
   const DEFAULT_API_KEY = 'b1d80c6b.30354834f9cb41cb93bf39e93ff291b3';
+  const customGateway = import.meta.env.VITE_DEDICATED_GATEWAY || '';
 
   // Settings / API Key
   const [apiKey, setApiKey] = useState(() => localStorage.getItem('lighthouse_api_key') || DEFAULT_API_KEY);
   const [tempApiKey, setTempApiKey] = useState(() => localStorage.getItem('lighthouse_api_key') || '');
   const [showKey, setShowKey] = useState(false);
-
-  // Settings / Custom Gateway
-  const [customGateway, setCustomGateway] = useState(() => localStorage.getItem('lighthouse_gateway') || '');
-  const [tempGateway, setTempGateway] = useState(customGateway);
 
   // Tab 1: Create State
   const [textInput, setTextInput] = useState('');
@@ -83,19 +80,13 @@ function App() {
     }
   };
 
-  // Save API Key & Gateway
+  // Save API Key
   const saveApiKey = (e) => {
     e.preventDefault();
     const cleanKey = tempApiKey.trim();
-    const cleanGateway = tempGateway.trim();
     localStorage.setItem('lighthouse_api_key', cleanKey);
-    localStorage.setItem('lighthouse_gateway', cleanGateway);
     setApiKey(cleanKey || DEFAULT_API_KEY);
-    setCustomGateway(cleanGateway);
     addLog(cleanKey ? 'Custom Lighthouse API Key saved.' : 'Using default demo Lighthouse API Key.', 'success');
-    if (cleanGateway) {
-      addLog(`Custom Dedicated Gateway configured: ${cleanGateway}`, 'success');
-    }
     setActiveTab('create');
   };
 
@@ -647,19 +638,6 @@ function App() {
                       Get free Lighthouse API Key
                     </a>
                   </div>
-                </div>
-
-                <div className="form-group" style={{ marginTop: '1.5rem' }}>
-                  <label>Custom Dedicated Gateway (Optional)</label>
-                  <input 
-                    type="text"
-                    placeholder="e.g. https://your-name.lighthouse.storage"
-                    value={tempGateway}
-                    onChange={(e) => setTempGateway(e.target.value)}
-                  />
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
-                    Recommended to bypass standard gateway 402/CORS restrictions. Find this in your Lighthouse dashboard.
-                  </span>
                 </div>
 
                 <button 
