@@ -7,12 +7,14 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "sirv dist --port $PORT --host 0.0.0.0 --single"
   },
   "dependencies": {
     "@lighthouse-web3/sdk": "^0.4.6",
     "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react-dom": "^19.2.7",
+    "sirv-cli": "^3.0.1"
   },
   "devDependencies": {
     "@types/react": "^19.2.17",
